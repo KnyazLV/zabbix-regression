@@ -1,0 +1,19 @@
+FROM php:8.3-cli-alpine
+
+RUN apk add --no-cache \
+    bash \
+    git \
+    unzip \
+    curl \
+    libzip-dev \
+    && docker-php-ext-install zip
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app/automation
+
+COPY automation/composer.json ./composer.json
+
+RUN composer install --no-interaction --prefer-dist
+
+COPY automation ./

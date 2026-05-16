@@ -1,0 +1,80 @@
+networks:
+  zbx74-frontend:
+    name: zbx74-frontend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
+
+  zbx74-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.1.0/24
+
+services:
+  postgres-74:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    networks:
+      - zbx74-backend
+    volumes:
+      - zbx74-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  zabbix-server-74:
+    image: zabbix/zabbix-server-pgsql:alpine-7.4.10
+    restart: unless-stopped
+    depends_on:
+      postgres-74:
+        condition: service_healthy
+    environment:
+      DB_SERVER_HOST: postgres-74
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    ports:
+      - "10051:10051"
+    networks:
+      - zbx74-backend
+      - zbx74-frontend
+
+  zabbix-web-74:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.4.10
+    restart: unless-stopped
+    depends_on:
+      - zabbix-server-74
+    environment:
+      ZBX_SERVER_HOST: zabbix-server-74
+      DB_SERVER_HOST: postgres-74
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+      PHP_TZ: Europe/Riga
+    ports:
+      - "8074:8080"
+      - "4434:8443"
+    networks:
+      - zbx74-backend
+      - zbx74-frontend
+
+  zabbix-agent-74:
+    image: zabbix/zabbix-agent:alpine-7.4.10
+    restart: unless-stopped
+    environment:
+      ZBX_SERVER_HOST: zabbix-server-74
+      ZBX_SERVERACTIVE: zabbix-server-74
+      ZBX_HOSTNAME: Zabbix server
+    networks:
+      - zbx74-backend
+
+volumes:
+  zbx74-pgdata:

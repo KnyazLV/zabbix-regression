@@ -1,0 +1,63 @@
+services:
+  selenium:
+    image: selenium/standalone-chromium:latest
+    shm_size: 2gb
+    restart: unless-stopped
+    ports:
+      - "4444:4444"
+    environment:
+      SE_NODE_MAX_SESSIONS: 1
+      SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
+
+      SE_SCREEN_WIDTH: 1920
+      SE_SCREEN_HEIGHT: 1080
+      SE_SCREEN_DEPTH: 24
+
+      SE_START_XVFB: "true"
+      SE_START_VNC: "false"
+      SE_START_NO_VNC: "false"
+    networks:
+      - test-runner
+      - zbx70-frontend
+      - zbx74-frontend
+
+  php-tests:
+    profiles:
+      - runner
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.php-tests
+    depends_on:
+      - selenium
+    working_dir: /app/automation
+    volumes:
+      - ..:/app
+      - php-vendor:/app/automation/vendor
+    environment:
+      SELENIUM_URL: http://selenium:4444
+
+      ZBX70_URL: http://zabbix-web-70:8080
+      ZBX74_URL: http://zabbix-web-74:8080
+
+      ZBX_USERNAME: Admin
+      ZBX_PASSWORD: zabbix
+
+      ZBX70_AGENT_DNS: zabbix-agent-70
+      ZBX74_AGENT_DNS: zabbix-agent-74
+    networks:
+      - test-runner
+
+networks:
+  test-runner:
+    driver: bridge
+
+  zbx70-frontend:
+    external: true
+    name: zbx70-frontend
+
+  zbx74-frontend:
+    external: true
+    name: zbx74-frontend
+
+volumes:
+  php-vendor:
