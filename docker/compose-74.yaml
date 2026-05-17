@@ -1,17 +1,3 @@
-networks:
-  zbx74-frontend:
-    name: zbx74-frontend
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.16.0.0/24
-
-  zbx74-backend:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.16.1.0/24
-
 services:
   postgres-74:
     image: postgres:16-alpine
@@ -75,6 +61,20 @@ services:
       ZBX_HOSTNAME: Zabbix server
     networks:
       - zbx74-backend
+
+networks:
+  zbx74-frontend:
+    name: zbx74-frontend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
+
+  zbx74-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.1.0/24
 
 volumes:
   zbx74-pgdata:

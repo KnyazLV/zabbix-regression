@@ -1,6 +1,6 @@
 # Zabbix Regression: 7.0.26 vs 7.4.10
 
-Regression test suite comparing Zabbix **7.0.26** (LTS baseline) against **7.4.10** (post-refactoring target). Covers two metric types: HTTP Agent and Zabbix Agent. Includes 23 test cases across 10 test suites, with a subset covered by Selenium + PHP automation.
+Regression test suite comparing Zabbix **7.0.26** (LTS baseline) against **7.4.10** (post-refactoring target). Covers two metric types: HTTP Agent and Zabbix Agent. Includes [23 test cases](/test-cases/traceability-matrix.md) across 10 test suites, with a subset covered by Selenium + PHP automation.
 
 ## Quick Start
 
@@ -34,14 +34,22 @@ Automated test cases (executed against both versions):
 - `TC-ZA01-01` – `agent.ping` returns `1`
 - `TC-ZA02-01` – `system.uname` regex extracts `Linux`
 
+### Stop containers
+
+```bash
+docker compose -f docker/compose-selenium.yaml -p zabbix-automation down
+docker compose -f docker/compose-70.yaml -p zabbix-70 down
+docker compose -f docker/compose-74.yaml -p zabbix-74 down
+```
+
 ## Structure
 
 ```
-automation/  Selenium + PHP test suite
-docker/      Compose files per version
-docs/        Test plan
-reports/     Test run report
-test-cases/  Test suites by metric type
+automation/ Selenium + PHP test suite
+docker/ Compose files per version
+docs/ Test plan
+reports/ Test run report
+test-cases/ Test suites by metric type
 ```
 
 ## Docs
